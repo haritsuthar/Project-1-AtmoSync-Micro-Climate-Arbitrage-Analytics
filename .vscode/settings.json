@@ -1,0 +1,5 @@
+{
+  "python.defaultInterpreterPath": "${workspaceFolder}\\\\packet_interceptor\\\\.venv\\\\Scripts\\\\python.exe",
+  "cmake.generator": "Ninja",
+  "cmake.configureOnOpen": true
+}

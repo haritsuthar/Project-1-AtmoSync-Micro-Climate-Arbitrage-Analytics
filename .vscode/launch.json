@@ -1,0 +1,12 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Python Interceptor",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/packet_interceptor/interceptor.py",
+      "console": "integratedTerminal"
+    }
+  ]
+}

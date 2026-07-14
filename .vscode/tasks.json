@@ -1,0 +1,35 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "generate-sample-log",
+      "type": "shell",
+      "command": "python packet_interceptor/generator.py",
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "run-interceptor",
+      "type": "shell",
+      "command": "python packet_interceptor/interceptor.py",
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "build-rust",
+      "type": "shell",
+      "command": "cargo build --release",
+      "options": { "cwd": "decision_engine" },
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "run-dashboard",
+      "type": "shell",
+      "command": "cmake --build build && .\\\\build\\\\VoltGuardDashboard.exe",
+      "options": { "cwd": "dashboard" },
+      "group": "build",
+      "problemMatcher": []
+    }
+  ]
+}
