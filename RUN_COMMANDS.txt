@@ -1,0 +1,201 @@
+================================================================================
+  VoltGuard — All Run Commands
+  Physics-Aware ICS/SCADA Intrusion Detection System
+================================================================================
+
+  Project Root:
+  d:\PROJECTS\Project-1--VoltGuard---Physics-Aware-ICS-SCADA-Intrusion-Detection-System\
+
+================================================================================
+  STEP 1 — Generate Modbus Commands  (optional, auto-runs via interceptor)
+================================================================================
+
+  cd d:\PROJECTS\Project-1--VoltGuard---Physics-Aware-ICS-SCADA-Intrusion-Detection-System\packet_interceptor
+
+  python generator.py
+
+  Output:  packet_interceptor\sample_log.jsonl
+  Creates 20 random Modbus-style command records.
+
+
+================================================================================
+  STEP 2 — Run the Detection Pipeline  (physics sim + decision engine)
+================================================================================
+
+  cd d:\PROJECTS\Project-1--VoltGuard---Physics-Aware-ICS-SCADA-Intrusion-Detection-System\packet_interceptor
+
+  python interceptor.py
+
+  Output:  output\decisions.jsonl
+  - Runs generator.py automatically if sample_log.jsonl is missing
+  - Calls physics engine for each command
+  - Applies ALLOW / DROP thresholds
+  - Prints colour-coded results to console
+  - Writes all 20 decision records to output\decisions.jsonl
+
+
+================================================================================
+  STEP 3 — Start the Web App  (Frontend + Backend)
+================================================================================
+
+  cd d:\PROJECTS\Project-1--VoltGuard---Physics-Aware-ICS-SCADA-Intrusion-Detection-System\web\backend
+
+  python -m uvicorn app:app --host 0.0.0.0 --port 8000 --reload
+
+  Then open browser at:   http://localhost:8000
+
+  Features available in the web app:
+    - Stats bar        : total / allowed / blocked counts
+    - Donut chart      : ALLOW vs DROP distribution
+    - Bar + line chart : pressure per command, flow rate overlay
+    - Decision table   : all records, filterable by action or keyword
+    - Live terminal    : click "Run Pipeline" button to re-run and stream output
+
+
+================================================================================
+  QUICK START  (run all steps from scratch in order)
+================================================================================
+
+  1.  cd d:\PROJECTS\Project-1--VoltGuard---Physics-Aware-ICS-SCADA-Intrusion-Detection-System\packet_interceptor
+      python generator.py
+
+  2.  python interceptor.py
+
+  3.  cd d:\PROJECTS\Project-1--VoltGuard---Physics-Aware-ICS-SCADA-Intrusion-Detection-System\web\backend
+      python -m uvicorn app:app --host 0.0.0.0 --port 8000 --reload
+
+  4.  Open browser:  http://localhost:8000
+
+
+================================================================================
+  OPTIONAL — Rebuild Rust Decision Engine  (requires Rust installed)
+================================================================================
+
+  Install Rust:   https://rustup.rs
+
+  cd d:\PROJECTS\Project-1--VoltGuard---Physics-Aware-ICS-SCADA-Intrusion-Detection-System\decision_engine
+
+  cargo build --release
+
+  Binary output:  decision_engine\target\release\decision_engine.exe
+  The interceptor detects this binary automatically and uses it instead of
+  the Python fallback.
+
+
+================================================================================
+  OPTIONAL — Build Qt6 Dashboard  (requires Qt6 + CMake installed)
+================================================================================
+
+  Install Qt6:    https://www.qt.io/download
+  Install CMake:  https://cmake.org/download
+
+  cd d:\PROJECTS\Project-1--VoltGuard---Physics-Aware-ICS-SCADA-Intrusion-Detection-System\dashboard
+
+  cmake -B build -S .
+  cmake --build build --config Release
+
+  Run:  build\Release\VoltGuardDashboard.exe
+
+  NOTE: Run interceptor.py first so output\decisions.jsonl exists.
+
+
+================================================================================
+  API ENDPOINTS  (once web server is running)
+================================================================================
+
+  GET  http://localhost:8000/              - Web dashboard (frontend)
+  GET  http://localhost:8000/api/decisions - All decision records (JSON)
+  GET  http://localhost:8000/api/stats     - Summary stats (JSON)
+  POST http://localhost:8000/api/run       - Run pipeline via API
+  GET  http://localhost:8000/api/stream    - Live SSE stream of pipeline output
+  GET  http://localhost:8000/docs          - Auto-generated API docs (Swagger UI)
+
+
+================================================================================
+  PHYSICS THRESHOLDS
+================================================================================
+
+  Pressure  > 12.0 bar  →  DROP  (Catastrophic Failure)
+  Flow rate >  5.0      →  DROP  (Catastrophic Failure)
+  Both within limits    →  ALLOW (Safe)
+
+  Physics formula (Python fallback):
+    pressure = 6.0 + 0.12 * cmd_value + 0.8 * (1.0 + 0.015 * cmd_value)
+    flow     = 1.0 + 0.015 * cmd_value
+
+
+================================================================================
+  FILE STRUCTURE
+================================================================================
+
+  packet_interceptor\
+    generator.py              <- generates sample_log.jsonl
+    interceptor.py            <- main pipeline orchestrator
+    sample_log.jsonl          <- auto-created (20 Modbus commands)
+
+  physics_engine\
+    simulate_pipeline.py      <- physics simulation (pure Python)
+    pipeline.mo               <- optional OpenModelica model
+
+  decision_engine\
+    src\main.rs               <- Rust decision engine (optional)
+    Cargo.toml
+
+  output\
+    decisions.jsonl           <- pipeline results (20 decision records)
+
+  web\
+    backend\
+      app.py                  <- FastAPI web server
+      requirements.txt        <- fastapi, uvicorn
+    frontend\
+      index.html              <- dashboard UI
+      static\
+        style.css             <- dark theme styles
+        app.js                <- charts, table, live terminal
+        chart.umd.min.js      <- Chart.js library (local copy)
+
+  dashboard\                  <- Qt6 C++ desktop app (optional)
+  shared\
+    models.py                 <- Python dataclasses (Command, SimulationResult)
+
+  README.md                   <- project documentation
+  HOW_TO_RUN.txt              <- detailed run instructions
+  RUN_COMMANDS.txt            <- this file (quick reference)
+
+
+================================================================================
+  REQUIREMENTS
+================================================================================
+
+  Required:
+    Python 3.8+               https://www.python.org/downloads/
+    fastapi==0.115.5          pip install fastapi==0.115.5
+    uvicorn==0.32.1           pip install uvicorn==0.32.1
+
+  Optional:
+    Rust + Cargo              https://rustup.rs
+    Qt6 + CMake               https://www.qt.io/download
+    OMPython (OpenModelica)   pip install OMPython
+
+================================================================================
+Sections included:
+
+Step 1 — Generate Modbus commands
+Step 2 — Run the detection pipeline
+Step 3 — Start the web app
+Quick Start (all steps in one place)
+Optional — Build Rust decision engine
+Optional — Build Qt6 desktop dashboard
+API endpoints (with Swagger UI link at /docs)
+Physics thresholds reference
+Full file structure
+Requirements with install links
+
+================================================================================
+
+- Stats bar — total commands, allowed count, blocked count with percentages
+- Donut chart — ALLOW vs DROP distribution (Chart.js)
+- Bar + line chart — pressure per command (bars coloured green/red by decision) with flow rate overlay
+- Decision table — all records with filter by text or action, colour-coded rows
+- Live terminal — real-time streaming output when you click ▶ Run Pipeline
