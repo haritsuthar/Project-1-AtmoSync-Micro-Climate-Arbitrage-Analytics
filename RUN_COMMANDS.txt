@@ -3,6 +3,51 @@
   Physics-Aware ICS/SCADA Intrusion Detection System
 ================================================================================
 
+WHAT THIS PROJECT DOES:
+-----------------------
+VoltGuard simulates a Modbus-based industrial control system and checks every
+command against a physics model of a pipeline. If a command would cause the
+pipeline to exceed safe pressure (>12 bar) or flow (>5 units), it is BLOCKED
+(DROP). Safe commands are ALLOWED. Results are written to a JSONL file and can
+be viewed in a Qt6 dashboard.
+
+PROJECT STRUCTURE
+-----------------
+VoltGuard/
+  packet_interceptor/
+    generator.py        <- Step 1: generates 20 fake Modbus commands
+    interceptor.py      <- Step 2: runs the full pipeline (physics + decision)
+    sample_log.jsonl    <- auto-created by generator.py
+  physics_engine/
+    simulate_pipeline.py  <- physics simulation (pure Python, no extra install)
+    pipeline.mo           <- optional OpenModelica model
+  decision_engine/
+    src/main.rs           <- Rust decision engine (optional, see below)
+    Cargo.toml
+  dashboard/
+    main.cpp              <- Qt6 C++ dashboard (optional, see below)
+    mainwindow.cpp / .h
+    CMakeLists.txt
+  output/
+    decisions.jsonl       <- auto-created by interceptor.py
+  shared/
+    models.py             <- shared Python dataclasses
+  web/
+    backend/
+      app.py
+      requirements.txt
+    frontend/
+      index.html
+      static/
+        app.js
+        chart.umd.min.json
+        style.css
+      
+  README.md
+  RUN_COMMANDS.txt          <- this file
+
+================================================================================
+
   Project Root:
   d:\PROJECTS\Project-1--VoltGuard---Physics-Aware-ICS-SCADA-Intrusion-Detection-System\
 
@@ -180,7 +225,7 @@
 
 ================================================================================
 Sections included:
-
+================================================================================
 Step 1 — Generate Modbus commands
 Step 2 — Run the detection pipeline
 Step 3 — Start the web app
@@ -193,9 +238,29 @@ Full file structure
 Requirements with install links
 
 ================================================================================
-
+What Dashboard Shows:
+================================================================================
 - Stats bar — total commands, allowed count, blocked count with percentages
 - Donut chart — ALLOW vs DROP distribution (Chart.js)
 - Bar + line chart — pressure per command (bars coloured green/red by decision) with flow rate overlay
 - Decision table — all records with filter by text or action, colour-coded rows
 - Live terminal — real-time streaming output when you click ▶ Run Pipeline
+================================================================================
+TROUBLESHOOTING
+================================================================================
+
+  "python is not recognized"
+    → Make sure Python 3 is installed and added to PATH.
+      Download: https://www.python.org/downloads/
+
+  "Missing sample_log.jsonl"
+    → Run generator.py first, OR just run interceptor.py — it auto-generates it.
+
+  "No output/decisions.jsonl found yet" (dashboard message)
+    → Run interceptor.py first to produce the output file, then relaunch.
+
+  Rust binary not found
+    → The pipeline still works using the Python fallback. Build the Rust binary
+      only if you want the faster native decision engine.
+
+================================================================================
